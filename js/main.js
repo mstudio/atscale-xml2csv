@@ -115,7 +115,6 @@ var Polyfills = new PolyfillsSingleton();
 /**
  * Main application
  *
- * Creates 2 views: 3D and 2D
  */
 
 var Main = function () {
@@ -123,8 +122,8 @@ var Main = function () {
     classCallCheck(this, Main);
 
     Polyfills.init();
-    new Scene();
-
+    //new Scene();
+    this.metaKeys = [['post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio']];
     this.initUploadListener();
   }
 
@@ -146,19 +145,102 @@ var Main = function () {
       console.log('handle');
       var file = e.target.files[0]; /* now you can work with the file list */
 
+      this.csv = [];
+
       var reader = new FileReader();
       reader.readAsText(file);
       reader.onloadend = function () {
-        //console.log($(reader.result));
-        _this2.parseXML($.parseXML(reader.result));
-        //var xmlData = $(reader.result);
+        var xml = $.parseXML(reader.result);
+        _this2.$xml = $(xml);
+        _this2.parseXML();
+
+        _this2.saveCSV();
+        _this2.showOutput();
       };
     }
   }, {
     key: 'parseXML',
-    value: function parseXML(xml) {
-      console.log('parsing..');
-      console.log(xml);
+    value: function parseXML() {
+      var _this3 = this;
+
+      var $items = this.$xml.find("item");
+
+      // set titles
+      var titles = [];
+      this.metaKeys.forEach(function (key) {
+        titles.push('"' + key[1] + '"');
+      });
+      titles.push("Photo");
+      this.csv.push(titles);
+
+      $items.each(function (i, item) {
+
+        var csvItem = [];
+        var $item = $(item);
+        var $postmeta = $item.find("postmeta");
+
+        _this3.metaKeys.forEach(function (key) {
+
+          var metaValue = '';
+          $postmeta.each(function (j, meta) {
+            var $meta = $(meta);
+            var metaKey = $meta.find("meta_key").text();
+
+            if (key[0] == metaKey) {
+              metaValue = $meta.find("meta_value").text();
+            }
+          });
+          csvItem.push('"' + metaValue + '"');
+        });
+
+        var attachment_url = $item.find("attachment_url").text();
+        csvItem.push(attachment_url);
+
+        _this3.csv.push(csvItem);
+      });
+    }
+  }, {
+    key: 'saveCSV',
+    value: function saveCSV() {
+      var _this4 = this;
+
+      //var data = [["name1", "city1", "some other info"], ["name2", "city2", "more info"]];
+      var csvContent = "data:text/csv;charset=utf-8,";
+      this.csv.forEach(function (infoArray, index) {
+        var dataString = infoArray.join(",");
+        csvContent += index < _this4.csv.length ? dataString + "\n" : dataString;
+      });
+
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "speakers.csv");
+      document.body.appendChild(link); // Required for FF
+      link.click();
+    }
+  }, {
+    key: 'showOutput',
+    value: function showOutput() {
+      var _this5 = this;
+
+      var $output = $("#output");
+      var $content = $output.find(".content");
+
+      this.csv.forEach(function (item, i) {
+        if (i > 0) {
+          var $item = $('<div class="item mt-5 mb-3"><h3>Speaker</h3></div>');
+          item.forEach(function (value, n) {
+            var key = _this5.csv[0][n].replace(new RegExp('"', 'g'), "");
+            value = value.replace(new RegExp('"', 'g'), "");
+            var $line = $('<p><strong>' + key + ': </strong><span>' + value + '</span></p>');
+            if (n == item.length - 1) {
+              $line = $('<p><strong>' + key + ': </strong></p><div><img style="display:block; max-width: 800px;" src="' + value + '"></div>');
+            }
+            $item.append($line);
+          });
+          $content.append($item);
+        }
+      });
     }
   }]);
   return Main;

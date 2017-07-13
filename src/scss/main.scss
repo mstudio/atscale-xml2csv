@@ -1,21 +1,5 @@
-@import "utils/_utils";
-@import "utils/_normalize";
-@import "utils/_common";
-@import "utils/_typography";
 
 @import "ui/_two-d";
 @import "ui/_top";
 
-body {
-  font-family: $body;
-  color: $color-body-text;
-  margin: 0;
-  overflow: hidden;
-
-  background: #fff; /* Old browsers */
-
-}
-button {
-  border: none;
-}
 

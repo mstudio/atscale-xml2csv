@@ -3,13 +3,11 @@
  *
  */
 
-import { Scene } from './scene';
 import { Polyfills } from './utils/polyfills';
 
 class Main {
   constructor() {
     Polyfills.init();
-    //new Scene();
     this.metaKeys = [ [ 'post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio'] ];
     this.initUploadListener();
   }
@@ -17,28 +15,23 @@ class Main {
   initUploadListener() {
     var inputElement = document.getElementById("file-input");
     inputElement.addEventListener("change", (event) => this.handleFiles(event), true);
-
   }
 
   handleFiles(e) {
-    console.log('handle');
-    var file = e.target.files[0]; /* now you can work with the file list */
-
+    var file = e.target.files[0];
     this.csv = [];
-
     var reader = new FileReader();
     reader.readAsText(file);
     reader.onloadend = ()=>{
       let xml = $.parseXML(reader.result);
       this.$xml = $(xml)
-      this.parseXML();
-
+      this.createCSV();
       this.saveCSV();
       this.showOutput();
     };
   }
 
-  parseXML() {
+  createCSV() {
 
     let $items = this.$xml.find("item");
 
@@ -78,7 +71,6 @@ class Main {
   }
 
   saveCSV() {
-    //var data = [["name1", "city1", "some other info"], ["name2", "city2", "more info"]];
     var csvContent = "data:text/csv;charset=utf-8,";
     this.csv.forEach((infoArray, index)=>{
       let dataString = infoArray.join(",");
@@ -95,7 +87,9 @@ class Main {
 
   showOutput() {
     let $output = $("#output");
+    $output.show();
     let $content = $output.find(".content");
+    $content.empty();
 
     this.csv.forEach((item, i) => {
       if (i > 0) {

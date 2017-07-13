@@ -28,54 +28,6 @@ var createClass = function () {
   };
 }();
 
-var Scene = function () {
-  function Scene() {
-    classCallCheck(this, Scene);
-
-    this.init();
-  }
-
-  createClass(Scene, [{
-    key: 'init',
-    value: function init() {
-      this.initMouseEvents();
-      this.initWindowEvents();
-    }
-  }, {
-    key: 'initMouseEvents',
-    value: function initMouseEvents() {
-      var _this = this;
-
-      document.addEventListener('mousedown', function (event) {
-        return _this.onMouseDown(event);
-      }, true);
-      //document.addEventListener( 'click', (event) => this.onClick(event), true );
-      document.addEventListener('mouseup', function (event) {
-        return _this.onMouseUp(event);
-      }, true);
-    }
-  }, {
-    key: 'initWindowEvents',
-    value: function initWindowEvents() {
-      window.addEventListener('resize', this.onWindowResize.bind(this), false);
-    }
-  }, {
-    key: 'onWindowResize',
-    value: function onWindowResize() {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-  }, {
-    key: 'onMouseUp',
-    value: function onMouseUp(event) {}
-  }, {
-    key: 'onMouseDown',
-    value: function onMouseDown(event) {}
-  }]);
-  return Scene;
-}();
-
 /**
  * Various js polyfills
  */
@@ -122,7 +74,6 @@ var Main = function () {
     classCallCheck(this, Main);
 
     Polyfills.init();
-    //new Scene();
     this.metaKeys = [['post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio']];
     this.initUploadListener();
   }
@@ -142,25 +93,21 @@ var Main = function () {
     value: function handleFiles(e) {
       var _this2 = this;
 
-      console.log('handle');
-      var file = e.target.files[0]; /* now you can work with the file list */
-
+      var file = e.target.files[0];
       this.csv = [];
-
       var reader = new FileReader();
       reader.readAsText(file);
       reader.onloadend = function () {
         var xml = $.parseXML(reader.result);
         _this2.$xml = $(xml);
-        _this2.parseXML();
-
+        _this2.createCSV();
         _this2.saveCSV();
         _this2.showOutput();
       };
     }
   }, {
-    key: 'parseXML',
-    value: function parseXML() {
+    key: 'createCSV',
+    value: function createCSV() {
       var _this3 = this;
 
       var $items = this.$xml.find("item");
@@ -204,7 +151,6 @@ var Main = function () {
     value: function saveCSV() {
       var _this4 = this;
 
-      //var data = [["name1", "city1", "some other info"], ["name2", "city2", "more info"]];
       var csvContent = "data:text/csv;charset=utf-8,";
       this.csv.forEach(function (infoArray, index) {
         var dataString = infoArray.join(",");
@@ -224,7 +170,9 @@ var Main = function () {
       var _this5 = this;
 
       var $output = $("#output");
+      $output.show();
       var $content = $output.find(".content");
+      $content.empty();
 
       this.csv.forEach(function (item, i) {
         if (i > 0) {

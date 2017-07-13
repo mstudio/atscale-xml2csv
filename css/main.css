@@ -233,3 +233,6 @@
       background-color: #03438b; }
     #top-ui .top-content.top-6 h2 {
       background-color: #000055; }
+
+#output {
+  display: none; }

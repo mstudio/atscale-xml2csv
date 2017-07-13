@@ -1,0 +1,210 @@
+/* -----------------------------------------
+   Mixins and Functions
+----------------------------------------- */
+
+/**
+
+  Breakpoint usage examples:
+
+  @include breakpoint(desktop) {
+    float: right;
+    width: 350px;
+  }
+  @include breakpoint(480px) {
+    display: none;
+  }
+  @include breakpoint($min: 640px, $max: 767px) {
+    text-align: center;
+    font-style: italic;
+  }
+
+  Credit: Tim Knight
+  https://medium.com/developing-with-sass/creating-a-dead-simple-sass-mixin-to-handle-responsive-breakpoints-889927b37740#.ddkwcgx38
+
+*/
+
+
+@mixin breakpoint($min: 0, $max: 0) {
+    $type: type-of($min);
+
+    @if $type == string {
+        @if $min == mobile {
+            @media (max-width: 767px) {
+                @content;
+            }
+        } @else if $min == mobile-nav {
+          @media  (max-width: 960px) {
+            @content;
+          }
+        } @else if $min == tablet {
+            @media  (max-width: 1024px) {
+                @content;
+            }
+        } @else if $min == tablet-up {
+            @media  (min-width: 768px) {
+                @content;
+            }
+        } @else if $min == desktop {
+            @media (min-width: 1025px) {
+                @content;
+            }
+        } @else if $min == lg-desktop {
+            @media (min-width: 1680px) {
+                @content;
+            }
+        } @else {
+            @warn "Breakpoint mixin `#{$min}` unsupported. See utils.scss";
+        }
+
+    } @else if $type == number {
+        $query: "all" !default;
+        @if $min != 0 and $max != 0 {
+            $query: "(min-width: #{$min}) and (max-width: #{$max})";
+        }
+        @else if $min != 0 and $max == 0 {
+            $query: "(min-width: #{$min})";
+        }
+        @else if $min == 0 and $max != 0 {
+            $query: "(max-width: #{$max})";
+        }
+        @media #{$query} {
+            @content;
+        }
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .desktop {
+        display:none;
+    }
+    .mobile {
+        display:block;
+    }
+}
+@media only screen and (min-width: 768px) {
+    .desktop {
+        display:block;
+    }
+    .mobile {
+        display:none;
+    }
+}
+
+
+@mixin box-sizing($box-model) {
+    -webkit-box-sizing: $box-model; // Safari <= 5
+    -moz-box-sizing: $box-model; // Firefox <= 19
+    box-sizing: $box-model;
+}
+
+@mixin clearfix() {
+    &:before,
+    &:after {
+        content: "";
+        display: table;
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin opacity($opacity) {
+    opacity: $opacity;
+    $opacity-ie: $opacity * 100;
+    filter: alpha(opacity=$opacity-ie); //IE8
+}
+
+@mixin center-block() {
+    display: block;
+    position: relative;
+    margin: 0 auto;
+}
+
+@mixin vertically-center-block {
+    position: relative;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+
+
+/**
+ Example: @include transition(color .3s ease);
+ */
+@mixin transition($args...) {
+    -webkit-transition: $args;
+    -moz-transition: $args;
+    -ms-transition: $args;
+    -o-transition: $args;
+    transition: $args;
+}
+
+//transform origin/
+// Example: @include transform-origin(top left);
+@mixin transform-origin ($origin) {
+    moz-transform-origin: $origin;
+    -o-transform-origin: $origin;
+    -ms-transform-origin: $origin;
+    -webkit-transform-origin: $origin;
+    transform-origin: $origin;
+}
+
+@mixin transform($transforms) {
+    -moz-transform: $transforms;
+    -o-transform: $transforms;
+    -ms-transform: $transforms;
+    -webkit-transform: $transforms;
+    transform: $transforms;
+}
+
+@mixin preserve-3d() {
+    -webkit-transform-style: preserve-3d;
+    -moz-transform-style: preserve-3d;
+    -ms-transform-style: preserve-3d;
+    -o-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+}
+
+@mixin perspective($px) {
+    -webkit-perspective: $px;
+    -moz-perspective: $px;
+    -ms-perspective: $px;
+    -o-perspective: $px;
+    perspective: $px;
+}
+
+
+
+@mixin flex {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+@mixin antialiasing {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* -----------------------------------------
+   Functions
+----------------------------------------- */
+
+// converts px values to em values based on our "$em-base"
+@function get-em($value, $base-value: $em-base)  {
+  $value: strip-unit($value) / strip-unit($base-value) * 1em;
+  @if ($value == 0em) { $value: 0; } // Turn 0em into 0
+  @return $value;
+}
+
+// strips the unit of measure and returns it
+@function strip-unit($num) {
+  @return $num / ($num * 0 + 1);
+}
+

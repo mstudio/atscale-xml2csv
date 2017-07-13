@@ -118,12 +118,51 @@ var Polyfills = new PolyfillsSingleton();
  * Creates 2 views: 3D and 2D
  */
 
-var Main = function Main() {
-  classCallCheck(this, Main);
+var Main = function () {
+  function Main() {
+    classCallCheck(this, Main);
 
-  Polyfills.init();
-  new Scene();
-};
+    Polyfills.init();
+    new Scene();
+
+    this.initUploadListener();
+  }
+
+  createClass(Main, [{
+    key: 'initUploadListener',
+    value: function initUploadListener() {
+      var _this = this;
+
+      var inputElement = document.getElementById("file-input");
+      inputElement.addEventListener("change", function (event) {
+        return _this.handleFiles(event);
+      }, true);
+    }
+  }, {
+    key: 'handleFiles',
+    value: function handleFiles(e) {
+      var _this2 = this;
+
+      console.log('handle');
+      var file = e.target.files[0]; /* now you can work with the file list */
+
+      var reader = new FileReader();
+      reader.readAsText(file);
+      reader.onloadend = function () {
+        //console.log($(reader.result));
+        _this2.parseXML($.parseXML(reader.result));
+        //var xmlData = $(reader.result);
+      };
+    }
+  }, {
+    key: 'parseXML',
+    value: function parseXML(xml) {
+      console.log('parsing..');
+      console.log(xml);
+    }
+  }]);
+  return Main;
+}();
 
 document.addEventListener('DOMContentLoaded', function (event) {
   return new Main();

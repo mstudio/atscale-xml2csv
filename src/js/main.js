@@ -84,18 +84,24 @@ class Main {
   }
 
   saveCSV() {
-    var csvContent = "data:text/csv;charset=utf-8,";
+    var csvContent = "";
+
     this.csv.forEach((infoArray, index)=>{
       let dataString = infoArray.join(",");
       csvContent += index < this.csv.length ? dataString+ "\n" : dataString;
     });
 
-    var encodedUri = encodeURI(csvContent);
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "speakers.csv");
-    document.body.appendChild(link); // Required for FF
-    link.click();
+    if (navigator.msSaveBlob)
+    { // IE 10+
+      navigator.msSaveBlob(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), "speakers.csv");
+    } else {
+      var encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "speakers.csv");
+      document.body.appendChild(link); // Required for FF
+      link.click();
+    }
   }
 
   showOutput() {
@@ -112,7 +118,7 @@ class Main {
           value = value.replace(new RegExp('"', 'g'), "");
           let $line = $('<p><strong>' + key + ': </strong><span>' + value + '</span></p>');
           if (n == item.length - 1) {
-            $line = $('<p><strong>' + key + ': </strong></p><div><img style="display:block; max-width: 800px;" src="' + value + '"></div>');
+            $line = $('<p><strong>' + key + ': </strong></p><div><img style="display:block; max-width: 800px;" src="' + value + '" alt="Speaker Photo" title="Speaker Photo"></div>');
           }
           $item.append($line);
         });

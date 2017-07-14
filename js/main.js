@@ -137,18 +137,24 @@ var Main = function () {
     value: function saveCSV() {
       var _this4 = this;
 
-      var csvContent = "data:text/csv;charset=utf-8,";
+      var csvContent = "";
+
       this.csv.forEach(function (infoArray, index) {
         var dataString = infoArray.join(",");
         csvContent += index < _this4.csv.length ? dataString + "\n" : dataString;
       });
 
-      var encodedUri = encodeURI(csvContent);
-      var link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "speakers.csv");
-      document.body.appendChild(link); // Required for FF
-      link.click();
+      if (navigator.msSaveBlob) {
+        // IE 10+
+        navigator.msSaveBlob(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), "speakers.csv");
+      } else {
+        var encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "speakers.csv");
+        document.body.appendChild(link); // Required for FF
+        link.click();
+      }
     }
   }, {
     key: 'showOutput',
@@ -168,7 +174,7 @@ var Main = function () {
             value = value.replace(new RegExp('"', 'g'), "");
             var $line = $('<p><strong>' + key + ': </strong><span>' + value + '</span></p>');
             if (n == item.length - 1) {
-              $line = $('<p><strong>' + key + ': </strong></p><div><img style="display:block; max-width: 800px;" src="' + value + '"></div>');
+              $line = $('<p><strong>' + key + ': </strong></p><div><img style="display:block; max-width: 800px;" src="' + value + '" alt="Speaker Photo" title="Speaker Photo"></div>');
             }
             $item.append($line);
           });

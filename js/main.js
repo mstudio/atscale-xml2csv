@@ -29,42 +29,6 @@ var createClass = function () {
 }();
 
 /**
- * Various js polyfills
- */
-
-var PolyfillsSingleton = function () {
-  function PolyfillsSingleton() {
-    classCallCheck(this, PolyfillsSingleton);
-  }
-
-  createClass(PolyfillsSingleton, [{
-    key: "init",
-    value: function init() {
-      this.initCustomEventPolyfill();
-    }
-  }, {
-    key: "initCustomEventPolyfill",
-    value: function initCustomEventPolyfill() {
-      if (typeof window.CustomEvent === "function") return false;
-
-      function CustomEvent(event, params) {
-        params = params || { bubbles: false, cancelable: false, detail: undefined };
-        var evt = document.createEvent('CustomEvent');
-        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-        return evt;
-      }
-
-      CustomEvent.prototype = window.Event.prototype;
-
-      window.CustomEvent = CustomEvent;
-    }
-  }]);
-  return PolyfillsSingleton;
-}();
-
-var Polyfills = new PolyfillsSingleton();
-
-/**
  * Main application
  *
  */
@@ -73,12 +37,22 @@ var Main = function () {
   function Main() {
     classCallCheck(this, Main);
 
-    Polyfills.init();
-    this.metaKeys = [['post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio']];
-    this.initUploadListener();
+    this.init();
   }
 
   createClass(Main, [{
+    key: 'init',
+    value: function init() {
+      this.csv = [];
+      this.metaKeys = [['post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio']];
+      this.initUploadListener();
+    }
+
+    /**
+     * handle file upload select
+     */
+
+  }, {
     key: 'initUploadListener',
     value: function initUploadListener() {
       var _this = this;
@@ -94,10 +68,10 @@ var Main = function () {
       var _this2 = this;
 
       var file = e.target.files[0];
-      this.csv = [];
       var reader = new FileReader();
       reader.readAsText(file);
       reader.onloadend = function () {
+        _this2.xmlString = reader.result;
         var xml = $.parseXML(reader.result);
         _this2.$xml = $(xml);
         _this2.createCSV();
@@ -110,41 +84,53 @@ var Main = function () {
     value: function createCSV() {
       var _this3 = this;
 
-      var $items = this.$xml.find("item");
+      this.createTitles();
+      var parser = new DOMParser();
+      var xml = parser.parseFromString(this.xmlString, "text/xml");
+      var items = xml.getElementsByTagName("item");
 
-      // set titles
+      // firefox and safari should have namespaces
+      // chrome should not
+      var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+      var namespace = isChrome ? "" : "wp:";
+
+      var _loop = function _loop(i) {
+        var csvItem = [];
+        var item = items[i];
+        var metas = item.getElementsByTagName(namespace + "postmeta");
+
+        _this3.metaKeys.forEach(function (key) {
+          var metaValue = '';
+          for (var j = 0; j < metas.length; j++) {
+            var meta = metas[j];
+            var metaKey = meta.getElementsByTagName(namespace + "meta_key")[0].childNodes[0].nodeValue;
+
+            if (key[0] == metaKey) {
+              metaValue = meta.getElementsByTagName(namespace + "meta_value")[0].childNodes[0].nodeValue;
+            }
+          }
+          csvItem.push('"' + metaValue + '"');
+        });
+
+        var attachment = item.getElementsByTagName(namespace + "attachment_url")[0];
+        var attachment_url = !attachment ? "" : attachment.childNodes[0].nodeValue;
+        csvItem.push(attachment_url);
+        _this3.csv.push(csvItem);
+      };
+
+      for (var i = 0; i < items.length; i++) {
+        _loop(i);
+      }
+    }
+  }, {
+    key: 'createTitles',
+    value: function createTitles() {
       var titles = [];
       this.metaKeys.forEach(function (key) {
         titles.push('"' + key[1] + '"');
       });
       titles.push("Photo");
       this.csv.push(titles);
-
-      $items.each(function (i, item) {
-
-        var csvItem = [];
-        var $item = $(item);
-        var $postmeta = $item.find("postmeta");
-
-        _this3.metaKeys.forEach(function (key) {
-
-          var metaValue = '';
-          $postmeta.each(function (j, meta) {
-            var $meta = $(meta);
-            var metaKey = $meta.find("meta_key").text();
-
-            if (key[0] == metaKey) {
-              metaValue = $meta.find("meta_value").text();
-            }
-          });
-          csvItem.push('"' + metaValue + '"');
-        });
-
-        var attachment_url = $item.find("attachment_url").text();
-        csvItem.push(attachment_url);
-
-        _this3.csv.push(csvItem);
-      });
     }
   }, {
     key: 'saveCSV',

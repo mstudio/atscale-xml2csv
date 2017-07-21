@@ -28,8 +28,6 @@ class Main {
     reader.readAsText(file);
     reader.onloadend = ()=> {
       this.xmlString = reader.result;
-      let xml = $.parseXML(reader.result);
-      this.$xml = $(xml);
       this.createCSV();
       this.saveCSV();
       this.showOutput();
@@ -42,8 +40,7 @@ class Main {
     var xml = parser.parseFromString(this.xmlString, "text/xml");
     let items = xml.getElementsByTagName("item");
 
-    // firefox and safari should have namespaces
-    // chrome should not
+    // firefox and safari should use namespaces in selections, chrome should not
     let isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
     let namespace = (isChrome) ? "" : "wp:";
 
@@ -69,9 +66,23 @@ class Main {
       let attachment = item.getElementsByTagName(namespace + "attachment_url")[0];
       let attachment_url = (!attachment) ? "" : attachment.childNodes[0].nodeValue;
       csvItem.push(attachment_url);
-      this.csv.push(csvItem);
+      if (!this.isDupe(csvItem)) {
+        this.csv.push(csvItem);
+      }
     }
 
+  }
+
+  isDupe(csvItem) {
+    let dupe = false;
+    this.csv.forEach((item, i) => {
+      // check for first name and last name match
+      if (item[0] == csvItem[0] && item[1] == csvItem[1]) {
+        item[item.length-1] = csvItem[csvItem.length-1]; // use the image (2nd item always has image)
+        dupe = true;
+      }
+    });
+    return dupe;
   }
 
   createTitles() {

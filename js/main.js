@@ -72,8 +72,6 @@ var Main = function () {
       reader.readAsText(file);
       reader.onloadend = function () {
         _this2.xmlString = reader.result;
-        var xml = $.parseXML(reader.result);
-        _this2.$xml = $(xml);
         _this2.createCSV();
         _this2.saveCSV();
         _this2.showOutput();
@@ -89,8 +87,7 @@ var Main = function () {
       var xml = parser.parseFromString(this.xmlString, "text/xml");
       var items = xml.getElementsByTagName("item");
 
-      // firefox and safari should have namespaces
-      // chrome should not
+      // firefox and safari should use namespaces in selections, chrome should not
       var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
       var namespace = isChrome ? "" : "wp:";
 
@@ -115,12 +112,27 @@ var Main = function () {
         var attachment = item.getElementsByTagName(namespace + "attachment_url")[0];
         var attachment_url = !attachment ? "" : attachment.childNodes[0].nodeValue;
         csvItem.push(attachment_url);
-        _this3.csv.push(csvItem);
+        if (!_this3.isDupe(csvItem)) {
+          _this3.csv.push(csvItem);
+        }
       };
 
       for (var i = 0; i < items.length; i++) {
         _loop(i);
       }
+    }
+  }, {
+    key: 'isDupe',
+    value: function isDupe(csvItem) {
+      var dupe = false;
+      this.csv.forEach(function (item, i) {
+        // check for first name and last name match
+        if (item[0] == csvItem[0] && item[1] == csvItem[1]) {
+          item[item.length - 1] = csvItem[csvItem.length - 1]; // use the image (2nd item always has image)
+          dupe = true;
+        }
+      });
+      return dupe;
     }
   }, {
     key: 'createTitles',

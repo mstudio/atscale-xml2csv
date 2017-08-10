@@ -87,9 +87,7 @@ var Main = function () {
       var xml = parser.parseFromString(this.xmlString, "text/xml");
       var items = xml.getElementsByTagName("item");
 
-      // firefox and safari should use namespaces in selections, chrome should not
-      var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-      var namespace = isChrome ? "" : "wp:";
+      var namespace = "wp:";
 
       var _loop = function _loop(i) {
         var csvItem = [];
@@ -112,6 +110,7 @@ var Main = function () {
         var attachment = item.getElementsByTagName(namespace + "attachment_url")[0];
         var attachment_url = !attachment ? "" : attachment.childNodes[0].nodeValue;
         csvItem.push(attachment_url);
+        //console.log(csvItem);
         if (!_this3.isDupe(csvItem)) {
           _this3.csv.push(csvItem);
         }
@@ -154,7 +153,10 @@ var Main = function () {
       this.csv.forEach(function (infoArray, index) {
         var dataString = infoArray.join(",");
         csvContent += index < _this4.csv.length ? dataString + "\n" : dataString;
+        //console.log(dataString);
       });
+
+      console.log(this.csv);
 
       if (navigator.msSaveBlob) {
         // IE 10+

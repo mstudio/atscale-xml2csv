@@ -10,7 +10,7 @@ class Main {
 
   init() {
     this.csv = [];
-    this.metaKeys = [ [ 'post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio'] ];
+    this.metaKeys = [ [ 'post_title', 'Last Name'], ['first_name', 'First Name'], ['job_title', 'Job Title'], ['company_name', 'Company Name'], ['email', 'Email'], ['phone', 'Phone'], ['session_title', 'Session Title'], ['session_abstract', 'Session Abstract'], ['post_content', 'Bio'], ['agree', 'Agree?'] ];
     this.initUploadListener();
   }
 
@@ -56,6 +56,8 @@ class Main {
 
           if (key[0] == metaKey) {
             metaValue = meta.getElementsByTagName(namespace + "meta_value")[0].childNodes[0].nodeValue;
+            if (metaValue == 'a:1:{i:0;s:5:"value";}') metaValue = 'Yes';
+            if (metaValue == 'a:0:{i:0;s:5:"value";}') metaValue = 'No';
           }
         }
         csvItem.push('"' + metaValue + '"');
@@ -131,6 +133,12 @@ class Main {
         item.forEach((value, n) => {
           let key = this.csv[0][n].replace(new RegExp('"', 'g'), "");
           value = value.replace(new RegExp('"', 'g'), "");
+
+          console.log("val: " + value);
+          if (value == 'a:1:{i:0;s:5:"value";}') value = 'Yes';
+          if (value == 'a:0:{i:0;s:5:"value";}') value = 'No';
+
+
           let $line = $('<p><strong>' + key + ': </strong><span>' + value + '</span></p>');
           if (n == item.length - 1) {
             $line = $('<p><strong>' + key + ': </strong></p><div><img style="display:block; max-width: 800px;" src="' + value + '" alt="Speaker Photo" title="Speaker Photo"></div>');
